@@ -1,4 +1,4 @@
-const https = require('https')
+import https from 'node:https';
 
 const nodeFetch = async (url) => {
   return new Promise((resolve, reject) => {
@@ -24,5 +24,4 @@ const nodeFetch = async (url) => {
   })
 }
 
-module.exports = nodeFetch
-module.exports.default = nodeFetch
+export default nodeFetch

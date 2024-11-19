@@ -1,5 +1,7 @@
+// import fetch from '../src/fetch.js';
 const isBrowser = typeof window !== 'undefined' && typeof window.document !== 'undefined';
-const fetch = isBrowser ? /* istanbul ignore next */window.fetch : require('../src/fetch')
+const browserFetch = isBrowser ? /* istanbul ignore next */window.fetch : null;
+
 
 class PublicGoogleSheetsParser {
   constructor (spreadsheetId, option) {
@@ -35,8 +37,15 @@ class PublicGoogleSheetsParser {
     url += this.sheetId ? `gid=${this.sheetId}` : `sheet=${this.sheetName}`
 
     try {
+      if (browserFetch !== null) {
+      const response = await browserFetch(url)
+      return response && response.ok ? response.text() : null
+
+      } else {
       const response = await fetch(url)
       return response && response.ok ? response.text() : null
+        
+      }
     } catch (e) {
       /* istanbul ignore next */
       console.error('Error fetching spreadsheet data:', e)
@@ -51,7 +60,10 @@ class PublicGoogleSheetsParser {
 
   applyHeaderIntoRows (header, rows) {
     return rows
-      .map(({ c: row }) => this.normalizeRow(row))
+      .map(({ c: row }) => {
+        console.log(this.normalizeRow(row));
+        return this.normalizeRow(row);
+      })
       .map((row) => row.reduce((p, c, i) => (c.v !== null && c.v !== undefined)
         ? Object.assign(p, { [header[i]]: this.useFormat ? c.f || c.v : this.useFormattedDate && this.isDate(c.v) ? c.f || c.v : c.v })
         : p, {}))
@@ -100,7 +112,6 @@ class PublicGoogleSheetsParser {
 /* istanbul ignore next */
 if (isBrowser && typeof module === 'undefined') {
   window.PublicGoogleSheetsParser = PublicGoogleSheetsParser
-} else {
-  module.exports = PublicGoogleSheetsParser
-  module.exports.default = PublicGoogleSheetsParser
-}
+} 
+
+  export default PublicGoogleSheetsParser
